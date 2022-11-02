@@ -25,7 +25,7 @@ file_names = ['VED_181107_week']#, 'VED_180523_week']
 # green, yellow, red, dark red
 bg_color = [[148, 200, 97], [225, 131, 49], [211, 45, 31],  [146, 36, 29]]
 # color similarity threshold
-threshold = 6000
+threshold = 6000 * 0.5
 
 
 def calc_diff(pixel, i):
@@ -130,11 +130,11 @@ if __name__ == "__main__":
     Y = SE_lat - NW_lat
     import typer
     for filename in file_names:
-        length = sum(1 for row in open('./ved-final/'+filename+'.csv', 'r'))
+        length = sum(1 for row in open('./ved_data_enrichment/data/ved-final/'+filename+'.csv', 'r'))
 
         typer.secho(f"Reading file: {filename}", fg="red", bold=True)
         typer.secho(f"total rows: {length}", fg="green", bold=True)
-        _input = pd.read_csv('./ved-final/'+filename+'.csv',
+        _input = pd.read_csv('./ved_data_enrichment/data/ved-final/'+filename+'.csv',
                              dtype={"Latitude[deg]": float, 'Longitude[deg]': float,
                                     'Vehicle Speed[km/h]': float, 'Speed Limit[km/h]': 'string'},
                              chunksize=5000)

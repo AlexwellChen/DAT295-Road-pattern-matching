@@ -130,3 +130,4 @@ dmypy.json
 
 ved_data_enrichment/
 .DS_Store
+output/

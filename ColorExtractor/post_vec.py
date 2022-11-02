@@ -27,8 +27,8 @@ from datetime import date, datetime, timedelta
 #'VED_181010_week',  'VED_181017_week', 
 #'VED_181024_week', 'VED_181031_week', 'VED_181107_week']
 
-file_names = ['VED_180905_week', 'VED_180912_week']
-# file_names = ['VED_181003_week']
+# file_names = ['VED_180905_week', 'VED_180912_week']
+file_names = ['VED_181003_week']
 # file_names = ['VED_180801_week', 'VED_180808_week', 'VED_180815_week']
 # file_names = ['VED_171213_week', 'VED_171220_week', 'VED_171227_week']
 # file_names = ['VED_180103_week', 'VED_180110_week', 'VED_180117_week']
@@ -126,11 +126,11 @@ if __name__ == "__main__":
     Y = SE_lat - NW_lat
     import typer
     for filename in file_names:
-        length = sum(1 for row in open('./ved-final/'+filename+'.csv', 'r'))
+        length = sum(1 for row in open('./ved_data_enrichment/data/ved-final/'+filename+'.csv', 'r'))
 
         typer.secho(f"Reading file: {filename}", fg="red", bold=True)
         typer.secho(f"total rows: {length}", fg="green", bold=True)
-        _input = pd.read_csv('./ved-final/'+filename+'.csv',
+        _input = pd.read_csv('./ved_data_enrichment/data/ved-final/'+filename+'.csv',
                              dtype={"Matchted Latitude[deg]": float, 'Matched Longitude[deg]': float,
                                     'Vehicle Speed[km/h]': float, 'Speed Limit[km/h]': 'string'},
                              chunksize=1000)
@@ -142,10 +142,10 @@ if __name__ == "__main__":
                 #     'DayNum', 'Matchted Latitude[deg]', 'Matched Longitude[deg]', 'Vehicle Speed[km/h]', 'Speed Limit[km/h]']]
                 chunk['Speed Limit[km/h]'] = pd.to_numeric(
                     chunk['Speed Limit[km/h]'], errors='coerce')
-                chunk = chunk.assign(gp='1')
-                chunk = chunk.assign(op='1')
-                chunk = chunk.assign(rp='1')
-                chunk = chunk.assign(dp='1')
+                chunk = chunk.assign(gp='1') # Green
+                chunk = chunk.assign(op='1') # Orange
+                chunk = chunk.assign(rp='1') # Red
+                chunk = chunk.assign(dp='1') # Dark Red
                 chunk['Index'] = chunk['DayNum'].apply(timeCalc)
                 for index, row in chunk.iterrows():
                     chunk['gp'].at[index],chunk['op'].at[index],chunk['rp'].at[index],chunk['dp'].at[index] = image_process(
