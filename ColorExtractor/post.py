@@ -28,12 +28,7 @@ bg_color = [[148, 200, 97], [225, 131, 49], [211, 45, 31],  [146, 36, 29]]
 threshold = 6000 * 0.5
 
 
-def calc_diff(pixel, i):
-    return (
-        (pixel[0] - bg_color[i][0]) ** 2
-        + (pixel[1] - bg_color[i][1]) ** 2
-        + (pixel[2] - bg_color[i][2]) ** 2
-    ) < threshold
+
 
 
 def image_process(lng: float, lat: float, idx, output=None):
