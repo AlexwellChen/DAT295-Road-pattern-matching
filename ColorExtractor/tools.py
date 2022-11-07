@@ -252,7 +252,7 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
         print("Image size: ", cropped_road.shape)
 
         output = cv.filter2D(cropped_road, 1, kernel) # Ouptput is the mask of intrerested area
-        threshold = int(kernel.sum() * 0.6)
+        threshold = int(kernel.sum() * 0.75)
 
         # Without interest area
         output[output < threshold] = 0
@@ -280,10 +280,10 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
         # Mix the point on map with the cropped image
         fig = plt.figure(figsize=[10,10])
         ax = fig.add_subplot(121)
-        ax.imshow(cropped)
-        ax.imshow(output, alpha=0.5)
-        # ax.imshow(center_crop_image)
-        # ax.imshow(center_crop_output, alpha=0.5)
+        # ax.imshow(cropped)
+        # ax.imshow(output, alpha=0.5)
+        ax.imshow(center_crop_image)
+        ax.imshow(center_crop_output, alpha=0.5)
         # subtitle
         ax.set_title("Interested road")
 
