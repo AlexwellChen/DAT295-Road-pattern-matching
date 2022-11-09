@@ -20,9 +20,10 @@ class Solution:
         self.cnt = 0
 
     def coordinate_to_tile(self, lat, lon, zoom):
-        lat_rad = lat * math.pi / 180.0
+        # lat_rad = lat * math.pi / 180.0
+        lat_rad = math.radians(lat)
         n = math.pow(2, zoom)
-        x_tile = n * ((lon + 180) / 360.0)
+        x_tile = n * ((lon + 180.0) / 360.0)
         y_tile = n * (1-(math.log(math.tan(lat_rad) + 1 /
                                   math.cos(lat_rad)) / math.pi)) / 2.0
 
