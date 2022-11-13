@@ -4,7 +4,8 @@ import pandas as pd
 import cv2 as cv
 import numpy as np
 from tqdm import tqdm
-import time
+import tools
+import typer
 from datetime import date, datetime, timedelta
 # Load the page
 
@@ -18,7 +19,7 @@ from datetime import date, datetime, timedelta
 
 # file_names = [0912]
 
-file_names = ['VED_181107_week']#, 'VED_180523_week']
+file_names = ['VED_181107_week', 'VED_180523_week']
 
 # file_names = ['sample_input']
 
@@ -26,10 +27,6 @@ file_names = ['VED_181107_week']#, 'VED_180523_week']
 bg_color = [[148, 200, 97], [225, 131, 49], [211, 45, 31],  [146, 36, 29]]
 # color similarity threshold
 threshold = 6000 * 0.5
-
-
-
-
 
 def image_process(lng: float, lat: float, idx, output=None):
     # cv.line(logo, (lng, 0), (lng, h), (0, 255, 255), thickness=2)
@@ -58,7 +55,7 @@ def image_process(lng: float, lat: float, idx, output=None):
                 if(cropped[i][j][0] == 255 and cropped[i][j][1] == 255 and cropped[i][j][2] == 255):
                     continue
                 for k in range(len(bg_color)):
-                    if calc_diff(cropped[i][j], k):
+                    if tools.calc_diff(cropped[i][j], k):
                         t[k] += 1
                         # break
                 # if t:
@@ -123,7 +120,6 @@ if __name__ == "__main__":
     # print(SE_lat, SE_lng)
     X = SE_lng - NW_lng
     Y = SE_lat - NW_lat
-    import typer
     for filename in file_names:
         length = sum(1 for row in open('./ved_data_enrichment/data/ved-final/'+filename+'.csv', 'r'))
 

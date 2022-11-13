@@ -166,7 +166,8 @@ def checkRoadType(mask):
     pass
 
 def point_delta(lng_seq, lat_seq, idx):
-    logo = cv.imread('./output/8756_8768_12124_12137_z15_t' +
+    path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
+    logo = cv.imread(path + 'output/8756_8768_12124_12137_z15_t' +
                          str(idx*600)+'.png')
     logo = cv.cvtColor(logo, cv.COLOR_BGR2RGB)
     h, w = logo.shape[0:2]
@@ -334,7 +335,7 @@ def crop_center_np(img,cropx,cropy):
     starty = y//2 - cropy//2    
     return img[startx:startx+cropx, starty:starty+cropy]
 
-def show_trajectory(lng_seq, lat_seq, idx, scale_x, scale_y):
+def show_trajectory(lng_seq, lat_seq, idx):
     logo = cv.imread('./output/8756_8768_12124_12137_z15_t' +
                          str(idx*600)+'.png')
     logo = cv.cvtColor(logo, cv.COLOR_BGR2RGB)
@@ -398,3 +399,78 @@ def show_trajectory(lng_seq, lat_seq, idx, scale_x, scale_y):
     ax.imshow(point_on_map, alpha=0.5)
     ax.set_title("Actual trajectory")
     plt.show()
+
+def show_trajectory_color(lng_seq, lat_seq, idx):
+    path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
+    logo = cv.imread(path + 'output/8756_8768_12124_12137_z15_t' +
+                         str(idx*600)+'.png')
+    logo = cv.cvtColor(logo, cv.COLOR_BGR2RGB)
+    
+    # times = 0.5
+    # print(logo.shape)
+    # logo = cv.resize(logo, (0, 0), fx = times, fy = times)
+    # print(logo.shape)
+    h, w = logo.shape[0:2]
+    # h是长边 3328，w是短边 3072
+    print(h, w)
+
+    lng = lng_seq[0]
+    lat = lat_seq[0]
+    
+    # lat 是上下 对应x， lng是左右 对应y
+    # x对应h， y对应w
+    lng = int(w*lng)
+    lat = int(h*lat)
+
+
+    max_delta = 0
+    max_lat_delta = 0
+    max_lng_delta = 0
+    rest_point_delta = []
+    for i in range(1, len(lng_seq)):
+        lng_ = int(w*lng_seq[i]) # y 经度
+        lat_ = int(h*lat_seq[i]) # x 纬度
+        max_lat_delta = max(max_lat_delta, abs(lat_-lat))
+        max_lng_delta = max(max_lng_delta, abs(lng_-lng))
+        max_delta = max(max_delta, max(max_lat_delta, max_lng_delta))
+        rest_point_delta.append((lat_-lat, lng_-lng)) # 上下是x，左右是y
+        
+        # rest_point_delta.append((lng_-lng, lat_-lat)) # 上下是x，左右是y
+    rest_point_delta = set(rest_point_delta)
+    rest_point_delta = list(rest_point_delta)
+    print("Length of rest_point_delta: ", len(rest_point_delta))
+    print(rest_point_delta)
+    print("Max delta: ", max_delta)
+        
+    img_half_width = max(max_delta + 20, 60)
+    point_on_map = np.zeros((2*img_half_width, 2*img_half_width))
+    for point in rest_point_delta:
+        point_on_map[point[0]+img_half_width][point[1]+img_half_width] = 1
+    cropped = logo[max(0, lat-img_half_width): min(h, lat+img_half_width),
+                       max(0, lng-img_half_width): min(w, lng+img_half_width)]
+    
+    # # point_img = Image.fromarray(point_on_map)
+    # origin_w, origin_h = point_on_map.shape
+    # times = 1
+    # point_on_map = cv.resize(point_on_map, (int(point_on_map.shape[0]*times), int(point_on_map.shape[1]*times)))
+    
+    # # center crop to original size
+    # point_on_map = crop_center_np(point_on_map, origin_w, origin_h)
+    
+    
+    # point_on_map = np.array(point_img_resize)
+    fig = plt.figure(figsize=[5,5])
+    ax = fig.add_subplot(111)
+    ax.imshow(cropped)
+    ax.imshow(point_on_map, alpha=0.5)
+    ax.set_title("Actual trajectory")
+    # plt.show()
+    color_code = input("Please input color code:\n0: Green, 1: Orange, 2: Red, 3: Dark Red, 4: Exit\n")
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    plt.close(fig)
+    # if color_code != "0" or color_code != "1" or color_code != "2" or color_code != "3" or color_code != "4":
+    #     return -1
+    if color_code == '':
+        return -1
+    return int(color_code)
