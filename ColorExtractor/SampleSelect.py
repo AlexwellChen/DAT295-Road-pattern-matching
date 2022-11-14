@@ -25,7 +25,7 @@ if __name__ == "__main__":
     X = SE_lat - NW_lat
     Y = SE_lng - NW_lng
 
-    file_names = ['VED_171115_week']
+    file_names = ['VED_171129_week']
     path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
 
     selectedSample = pd.DataFrame(columns=['Filename', 'index', 'color_code'])
