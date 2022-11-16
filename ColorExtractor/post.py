@@ -32,7 +32,8 @@ def image_process(lng: float, lat: float, idx, output=None):
     # cv.line(logo, (lng, 0), (lng, h), (0, 255, 255), thickness=2)
     # cv.line(logo, (0, lat), (w, lat), (255, 0, 0), thickness=2)
     try:
-        logo = cv.imread('./output/8756_8768_12124_12137_z15_t' +
+        path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
+        logo = cv.imread(path + 'output/8756_8768_12124_12137_z15_t' +
                          str(idx*600)+'.png')
         logo = cv.cvtColor(logo, cv.COLOR_BGR2RGB)
         h, w = logo.shape[0:2]
