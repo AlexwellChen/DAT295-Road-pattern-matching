@@ -4,7 +4,7 @@ import pandas as pd
 import cv2 as cv
 import numpy as np
 from tqdm import tqdm
-import tools
+# import tools
 import typer
 from datetime import date, datetime, timedelta
 # Load the page

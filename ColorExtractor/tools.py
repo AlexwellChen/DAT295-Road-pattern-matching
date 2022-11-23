@@ -2,6 +2,8 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+import math
+from datetime import date, datetime, timedelta
 
 np.set_printoptions(threshold=np.inf)
 
@@ -9,6 +11,36 @@ np.set_printoptions(threshold=np.inf)
 bg_color = [[148, 200, 97], [225, 131, 49], [211, 45, 31], [146, 36, 29]]
 # color similarity threshold
 threshold = 6000
+
+
+def num2deg(xtile, ytile, zoom):
+	n = math.pow(2, zoom)
+	lon_deg = xtile / n * 360.0 - 180.0
+	lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
+	lat_deg = math.degrees(lat_rad)
+	return (lat_deg, lon_deg)
+
+
+def timeCalc(daynum):
+	start = datetime(2017, 11, 1)
+	# UTC -> Local time
+	start = start - timedelta(hours=5)
+	test = start + timedelta(days=daynum - 1)
+	# Monday is 0 and Sunday is 6.
+	d = test.weekday()
+	h = test.hour
+	m = test.minute
+	if (m % 10 > 5):
+		m += (10 - m % 10)
+	else:
+		m -= (m % 10)
+	idx = d * (144) + h * 6 + m
+	idx %= 1008
+	if d == 6:
+		d = 0
+	else:
+		d += 1
+	return idx
 
 
 def calc_diff(pixel, i):
@@ -137,7 +169,7 @@ def image_process(lng: float, lat: float, idx, output=None):
 	try:
 		path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
 		logo = cv.imread(path + 'output/8756_8768_12124_12137_z15_t' +
-                         str(idx*600)+'.png')
+		                 str(idx * 600) + '.png')
 		logo = cv.cvtColor(logo, cv.COLOR_BGR2RGB)
 		
 		h, w = logo.shape[0:2]
@@ -167,8 +199,39 @@ def image_process(lng: float, lat: float, idx, output=None):
 		return -1
 
 
-def checkRoadType(mask):
-	pass
+def detectDirection(kernel, rest_point_delta):
+	# Calculate the vector from the last point to the first point and normalize it
+	vector_original = [rest_point_delta[-1][0] - rest_point_delta[0][0],
+	                   rest_point_delta[-1][1] - rest_point_delta[0][1]]
+	vector_len = math.sqrt(vector_original[0] ** 2 + vector_original[1] ** 2)
+	vector = [vector_original[0] / vector_len, vector_original[1] / vector_len]
+	print(vector)
+	
+	# Rotate the vector 90 degrees counterclockwise
+	vector_rotated = np.array([-vector[1], vector[0]])
+	'''
+		Generate new kernel.
+		Original point change to 2
+		New points equal 1
+	'''
+	kernel_new = np.zeros(kernel.shape, dtype=np.uint8)
+	i, j = 0, 0
+	for i in range(len(kernel)):
+		for j in range(len(kernel[0])):
+			if kernel[i][j] == 1:
+				kernel_new[i][j] = 2
+				# rotated points should move 11 pixels on the rotated vector direction
+				cord_x = i + int(vector_rotated[0] * 11)
+				cord_y = j + int(vector_rotated[1] * 11)
+				if cord_x >= 0 and cord_x < len(kernel) and cord_y >= 0 and cord_y < len(kernel[0]):
+					kernel_new[cord_x][cord_y] = 1
+				
+				cord_x = i + int(vector_rotated[0] * 6)
+				cord_y = j + int(vector_rotated[1] * 6)
+				if cord_x >= 0 and cord_x < len(kernel) and cord_y >= 0 and cord_y < len(kernel[0]):
+					kernel_new[cord_x][cord_y] = 1
+	
+	return kernel_new
 
 
 def point_delta(lng_seq, lat_seq, idx):
@@ -211,6 +274,7 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		logo = cv.cvtColor(logo, cv.COLOR_BGR2RGB)
 		
 		h, w = logo.shape[0:2]
+		print(h, w)
 		
 		lng = lng_seq[0]
 		lat = lat_seq[0]
@@ -229,14 +293,14 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 			max_lng_delta = max(max_lng_delta, abs(lng_ - lng))
 			max_delta = max(max_delta, max(max_lat_delta, max_lng_delta))
 			rest_point_delta.append((lat_ - lat, lng_ - lng))  # 上下是x，左右是y
-			
-			# rest_point_delta.append((lng_-lng, lat_-lat)) # 上下是x，左右是y
+		
+		# rest_point_delta.append((lng_-lng, lat_-lat)) # 上下是x，左右是y
 		rest_point_delta = set(rest_point_delta)
 		rest_point_delta = list(rest_point_delta)
 		
-		# print("Length of rest_point_delta: ", len(rest_point_delta))
-		# print(rest_point_delta)
-		# print("Max delta: ", max_delta)
+		print("Length of rest_point_delta: ", len(rest_point_delta))
+		print(rest_point_delta)
+		print("Max delta: ", max_delta)
 		
 		img_half_width = max(max_delta + 1, 60)
 		point_on_map = np.zeros((2 * img_half_width, 2 * img_half_width))
@@ -248,6 +312,8 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		
 		# Generate filter kernel
 		kernel = gen_Filter(max_lat_delta, max_lng_delta, rest_point_delta[:])
+		# Improve the kernel and mask
+		direct_kernel = detectDirection(kernel, rest_point_delta)
 		# Extract road
 		cropped_road = np.zeros((cropped.shape[0], cropped.shape[1]))
 		for i in range(cropped.shape[0]):
@@ -264,25 +330,12 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		# print("Kernel size: ", kernel.shape)
 		# print("Image size: ", cropped_road.shape)
 		
-		output = cv.filter2D(cropped_road, 1, kernel)  # Ouptput is the mask of intrerested area
-		threshold = int(kernel.sum() * 0.6)
-		
+		output = cv.filter2D(cropped_road, 1, direct_kernel)  # Ouptput is the mask of intrerested area
+		threshold = int(direct_kernel.sum() * 0.65)
+
 		# Without interest area
 		output[output < threshold] = 0
 		output[output >= threshold] = 1
-		
-		# # With interest area
-		# detect_range = 0
-		# for i in range(len(output)):
-		#     for j in range(len(output[0])):
-		#         if output[i][j] >= threshold and abs(i - img_half_width) < max_delta + detect_range and abs(j - img_half_width) < max_delta + detect_range:
-		#             output[i][j] = 1
-		#         else:
-		#             output[i][j] = 0
-		
-		# Todo: Determine the type of road
-		
-		# Todo: Determine which direction the road is going
 		
 		# Center crop to w*w
 		center_width = 24
@@ -291,15 +344,15 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		center_crop_image = cropped[img_half_width - center_width // 2:img_half_width + center_width // 2,
 		                    img_half_width - center_width // 2:img_half_width + center_width // 2]
 		
-		show_img_flag = False
+		show_img_flag = True
 		if show_img_flag:
 			# Mix the point on map with the cropped image
 			fig = plt.figure(figsize=[10, 10])
 			ax = fig.add_subplot(121)
-			# ax.imshow(cropped)
-			# ax.imshow(output, alpha=0.5)
-			ax.imshow(center_crop_image)
-			ax.imshow(center_crop_output, alpha=0.5)
+			ax.imshow(cropped)
+			ax.imshow(output, alpha=0.5)
+			# ax.imshow(center_crop_image)
+			# ax.imshow(center_crop_output, alpha=0.5)
 			# subtitle
 			ax.set_title("Interested road")
 			
@@ -319,7 +372,8 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 					if calc_diff(center_crop_image[i][j], k):
 						t[k] += 1
 		return t.index(max(t))
-	except:
+	except Exception as e:
+		print(e)
 		return -1
 
 
@@ -379,8 +433,8 @@ def show_trajectory(lng_seq, lat_seq, idx):
 		max_lng_delta = max(max_lng_delta, abs(lng_ - lng))
 		max_delta = max(max_delta, max(max_lat_delta, max_lng_delta))
 		rest_point_delta.append((lat_ - lat, lng_ - lng))  # 上下是x，左右是y
-		
-		# rest_point_delta.append((lng_-lng, lat_-lat)) # 上下是x，左右是y
+	
+	# rest_point_delta.append((lng_-lng, lat_-lat)) # 上下是x，左右是y
 	rest_point_delta = set(rest_point_delta)
 	rest_point_delta = list(rest_point_delta)
 	print("Length of rest_point_delta: ", len(rest_point_delta))
@@ -444,8 +498,8 @@ def show_trajectory_color(lng_seq, lat_seq, idx):
 		max_lng_delta = max(max_lng_delta, abs(lng_ - lng))
 		max_delta = max(max_delta, max(max_lat_delta, max_lng_delta))
 		rest_point_delta.append((lat_ - lat, lng_ - lng))  # 上下是x，左右是y
-		
-		# rest_point_delta.append((lng_-lng, lat_-lat)) # 上下是x，左右是y
+	
+	# rest_point_delta.append((lng_-lng, lat_-lat)) # 上下是x，左右是y
 	rest_point_delta = set(rest_point_delta)
 	rest_point_delta = list(rest_point_delta)
 	print("Length of rest_point_delta: ", len(rest_point_delta))
