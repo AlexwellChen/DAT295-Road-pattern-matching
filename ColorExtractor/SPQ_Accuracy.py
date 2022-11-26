@@ -26,7 +26,7 @@ if __name__ == "__main__":
     Y = SE_lng - NW_lng
     
     path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
-    samples_groupby_filename = random_sample.groupby('Filename')
+    samples_groupby_filename = manual_sample.groupby('Filename')
     
     new_accuract = 0
     old_accuract = 0
@@ -44,7 +44,7 @@ if __name__ == "__main__":
             up_limit = 30
             longitude_seq = []
             latitude_seq = []
-            if index == 2147:
+            if index in sample_index:
                 for i in range(up_limit):
                     # Change every 6 items
                     new_index = index
@@ -58,16 +58,16 @@ if __name__ == "__main__":
                     if max_delta > 20:
                         break
                 color_code = tools.image_process_position_seq(longitude_seq, latitude_seq, idx, rest_point_delta, max_delta)
-                # old_color_code = tools.image_process(longitude_seq[0], latitude_seq[0], idx)
-                # acutal_index = group[group['index'] == index].index.tolist()[0]
-                break
+                old_color_code = tools.image_process(longitude_seq[0], latitude_seq[0], idx)
+                acutal_index = group[group['index'] == index].index.tolist()[0]
+                
                 acutal_color_code = group['color_code'].at[acutal_index]
                 if color_code == acutal_color_code:
                     new_accuract += 1
                 if old_color_code == acutal_color_code:
                     old_accuract += 1
                 total += 1
-        break
-    # print("New accuracy: ", new_accuract/total)
-    # print("Old accuracy: ", old_accuract/total)
+        
+    print("New accuracy: ", new_accuract/total)
+    print("Old accuracy: ", old_accuract/total)
     

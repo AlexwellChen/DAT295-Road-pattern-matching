@@ -298,9 +298,9 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		rest_point_delta = set(rest_point_delta)
 		rest_point_delta = list(rest_point_delta)
 		
-		print("Length of rest_point_delta: ", len(rest_point_delta))
-		print(rest_point_delta)
-		print("Max delta: ", max_delta)
+		# print("Length of rest_point_delta: ", len(rest_point_delta))
+		# print(rest_point_delta)
+		# print("Max delta: ", max_delta)
 		
 		img_half_width = max(max_delta + 1, 60)
 		point_on_map = np.zeros((2 * img_half_width, 2 * img_half_width))
@@ -344,7 +344,7 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		center_crop_image = cropped[img_half_width - center_width // 2:img_half_width + center_width // 2,
 		                    img_half_width - center_width // 2:img_half_width + center_width // 2]
 		
-		show_img_flag = True
+		show_img_flag = False
 		if show_img_flag:
 			# Mix the point on map with the cropped image
 			fig = plt.figure(figsize=[10, 10])
