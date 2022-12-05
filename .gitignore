@@ -133,3 +133,6 @@ ved_data_enrichment/
 output/
 .idea/
 .vscode/
+ValidateTool/cache
+ValidateTool/output
+ValidateTool/sample.json

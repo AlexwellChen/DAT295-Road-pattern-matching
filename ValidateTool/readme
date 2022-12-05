@@ -1,0 +1,9 @@
+Remeber to replace your API in the code
+
+hyper parameters:
+DEPARTURE_TIME = 1658642400 // unix timestamp
+TIME = "Sunday, July 24, 2022 8:00:00 AM GMT+02:00" // corresponding time in string format, used in construct file name
+
+ORIGIN =     "Hanover, Germany" 
+DESTINATION = "Hamburg, Germany" 
+WAYPOINTS = None                    // the place that passing through during the trip

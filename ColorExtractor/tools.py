@@ -331,11 +331,16 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		# print("Image size: ", cropped_road.shape)
 		
 		output = cv.filter2D(cropped_road, 1, direct_kernel)  # Ouptput is the mask of intrerested area
+		original_kernel_output = cv.filter2D(cropped_road, 1, kernel)
 		threshold = int(direct_kernel.sum() * 0.65)
+		original_threshold = int(kernel.sum() * 0.65)
 
 		# Without interest area
 		output[output < threshold] = 0
 		output[output >= threshold] = 1
+
+		original_kernel_output[original_kernel_output < original_threshold] = 0
+		original_kernel_output[original_kernel_output >= original_threshold] = 1
 		
 		# Center crop to w*w
 		center_width = 24
@@ -344,7 +349,7 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		center_crop_image = cropped[img_half_width - center_width // 2:img_half_width + center_width // 2,
 		                    img_half_width - center_width // 2:img_half_width + center_width // 2]
 		
-		show_img_flag = False
+		show_img_flag = True
 		if show_img_flag:
 			# Mix the point on map with the cropped image
 			fig = plt.figure(figsize=[10, 10])
@@ -354,12 +359,12 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 			# ax.imshow(center_crop_image)
 			# ax.imshow(center_crop_output, alpha=0.5)
 			# subtitle
-			ax.set_title("Interested road")
+			ax.set_title("Directed Interested road")
 			
 			ax = fig.add_subplot(122)
 			ax.imshow(cropped)
-			ax.imshow(point_on_map, alpha=0.5)
-			ax.set_title("Actual trajectory")
+			ax.imshow(original_kernel_output, alpha=0.5)
+			ax.set_title("Orignial Interested road")
 			plt.show()
 		
 		t = [0, 0, 0, 0]
