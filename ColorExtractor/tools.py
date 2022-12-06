@@ -126,7 +126,7 @@ def gen_Filter(max_lat_delta, max_lng_delta, rest_point_delta):
 		DDA(rest_point_delta[i][0], rest_point_delta[i][1],
 		    rest_point_delta[i + 1][0], rest_point_delta[i + 1][1], interpolated_point)
 	
-	width = max(max_delta + 1 - min_val, 12)
+	width = int(max(max_delta + 1 - min_val, 12))
 	kernel_size = (width, width)
 	kernel = np.zeros(kernel_size, np.uint8)
 	for point in interpolated_point:

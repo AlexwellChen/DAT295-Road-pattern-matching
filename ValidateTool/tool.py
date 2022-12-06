@@ -20,6 +20,7 @@ import cv2 as cv
 import calendar
 import time
 from datetime import datetime
+from GRQ import *
 gmaps = googlemaps.Client(key="AIzaSyAFqM8oZMQAJaPvS2qYcFzZpAluCr0KywQ")
 
 # G, Y, R, D
@@ -98,6 +99,7 @@ if not os.path.exists('./cache'):
     os.makedirs('cache')
 if not os.path.exists('output'):
     os.makedirs('output')
+
 
 
 class Proxy:
@@ -258,7 +260,7 @@ class Scraper:
         #            cv.cvtColor(cropped, cv.COLOR_RGB2BGR))
         # print(cropped.shape)
         # Show the image
-        cv.imshow('image', cropped)
+        # cv.imshow('image', cropped)
         t = [0, 0, 0, 0]
         for i in range(cropped.shape[0]):
             for j in range(cropped.shape[1]):
@@ -796,8 +798,16 @@ if __name__ == '__main__':
                 leg["distance"]["value"],
                 COLOR_TIME,
                 leg["polyline"]["points"]))
-        ways[i].export()
-        ways[i].plot_map()
-        break
+        # GRQ should be added here
+        # ways[i].export()
+        # ways[i].plot_map()
+        if i == 1:
+            GRQ(ways[i])
+            break
 
     map.save('./output/MAP_' + FILE_NAME + '.html')
+
+    
+
+
+
