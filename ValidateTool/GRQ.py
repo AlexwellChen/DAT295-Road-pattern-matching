@@ -20,6 +20,7 @@ import cv2 as cv
 import calendar
 import time
 from datetime import datetime
+from matplotlib.animation import FFMpegWriter
 gmaps = googlemaps.Client(key="AIzaSyAFqM8oZMQAJaPvS2qYcFzZpAluCr0KywQ")
 
 # G, Y, R, D
@@ -162,6 +163,7 @@ def PathFinding(s_x, s_y, e_x, e_y, img):
                         max(0, m_y - crop_distance): min(h, m_y + crop_distance)]
     cropped_img = img[max(0, m_x - crop_distance): min(w, m_x + crop_distance),
                         max(0, m_y - crop_distance): min(h, m_y + crop_distance)]
+    cropped_mask = np.zeros((cropped_bin.shape[0], cropped_bin.shape[1]))
     # get new start/end point
     new_s_x, new_s_y, new_e_x, new_e_y = 0, 0, 0, 0
     for i in range(cropped_bin.shape[0]):
@@ -174,38 +176,77 @@ def PathFinding(s_x, s_y, e_x, e_y, img):
                 new_e_y = j
     
     # plt.imshow(cropped_img)
-    # plt.imshow(cropped_bin, alpha=0.5)
+    # plt.imshow(cropped_bin)
     # plt.show()
 
     # # Then use DFS to find the path from s_x, s_y to e_x, e_y in bin_img
+    print("New start point: ", new_s_x, new_s_y)
+    print("New end point: ", new_e_x, new_e_y)
     px = [-1, 0, 1, 0]
     py = [0, 1, 0, -1]
     visited = np.zeros((cropped_bin.shape[0], cropped_bin.shape[1]))
     path = []
     cropped_h, cropped_w = cropped_bin.shape[0:2]
-    def dfs(cropped_bin, visited, x, y):
+    print("Cropped image size: ", cropped_h, cropped_w)
+    find_flag = False
+    result = []
+    animation = False
+    def dfs(cropped_bin, visited, x, y, predistance):
         # boundary check
+        nonlocal animation
+        nonlocal find_flag
+        nonlocal path
+        nonlocal result
         if x < 0 or x >= cropped_w or y < 0 or y >= cropped_h:
             print("Out of boundary")
             return
+        if animation:
+            # Animation to show the finding process
+            orignialValue = cropped_bin[x][y]
+            cropped_bin[x][y] = 15
+            plt.cla()
+            plt.imshow(cropped_bin)
+            plt.imshow(visited, alpha=0.5)
+            plt.pause(0.01)
+            cropped_bin[x][y] = orignialValue
         if x == new_e_x and y == new_e_y:
             print("Find the path")
+            find_flag = True
             path.append((x, y))
+            # print(path)
+            result = path[:]
             return
         for i in range(4):
             new_x = x + px[i]
             new_y = y + py[i]
-            if new_x >= 0 and new_x < cropped_w and new_y >= 0 and new_y < cropped_h and visited[new_x][new_y] == 0 and bin_img[new_x][new_y] == 1:
-                visited[new_x][new_y] = 1
-                path.append((x, y))
-                print("Append at: ", x, y)
-                dfs(cropped_bin, visited, new_x, new_y)
-                print("Pop at: ", x, y)
-                path.pop()
-                visited[new_x][new_y] = 0
+            if new_x >= 0 and new_x < cropped_h and new_y >= 0 and new_y < cropped_w and find_flag == False:
+                distance = (new_x - new_e_x) ** 2 + (new_y - new_e_y) ** 2
+                distance = int(distance ** 0.5)
+                if distance > predistance:
+                    # Greedy optimization, might ignord the path in some cases
+                    continue
+                if visited[new_x][new_y] == 0 and cropped_bin[new_x][new_y] > 0:
+                    visited[new_x][new_y] = 1
+                    path.append((x, y))
+                    dfs(cropped_bin, visited, new_x, new_y, distance)
+                    path.pop()
+                    visited[new_x][new_y] = 0
     visited[new_s_x][new_s_y] = 1
-    dfs(cropped_bin, visited, new_s_x, new_s_y)
-    # print("path: ", path)
+    distance_s_e = (new_s_x - new_e_x) ** 2 + (new_s_y - new_e_y) ** 2
+    distance_s_e = int(distance_s_e ** 0.5)
+    dfs(cropped_bin, visited, new_s_x, new_s_y, distance_s_e)
+    
+    for point in result:
+        cropped_mask[point[0]][point[1]] = 1
+        # set round pixels to 1
+        for i in range(4):
+            new_x = point[0] + px[i]
+            new_y = point[1] + py[i]
+            if new_x >= 0 and new_x < cropped_h and new_y >= 0 and new_y < cropped_w:
+                cropped_mask[new_x][new_y] = 1
+    plt.imshow(cropped_img)
+    plt.imshow(cropped_mask, alpha=0.5)
+    plt.show()
 
 
 def GRQ(way: Road):
@@ -266,25 +307,6 @@ def GRQ(way: Road):
     mask[s_lat_pixel][s_lng_pixel] = 1
     mask[e_lat_pixel][e_lng_pixel] = 2
     PathFinding(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo)
-    
-    # max_lat_delta = abs(s_lat_pixel - e_lat_pixel)
-    # max_lng_delta = abs(s_lng_pixel - e_lng_pixel)
-    # max_delta = max(max_lat_delta, max_lng_delta)
-    # rest_point_delta = []
-    # for i in range(1, len(way.way_locs)):
-    #     lng_ = int(w * way.way_locs[i][1])  # y 经度
-    #     lat_ = int(h * way.way_locs[i][0])  # x 纬度
-    #     max_lat_delta = max(max_lat_delta, abs(lat_ - s_lat))
-    #     max_lng_delta = max(max_lng_delta, abs(lng_ - s_lng))
-    #     max_delta = max(max_delta, max(max_lat_delta, max_lng_delta))
-    #     rest_point_delta.append((lat_ - s_lat, lng_ - s_lng))  # 上下是x，左右是y
-    
-    # # Generate filter
-    # kernel = getKernel(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel)
-    # # Apply filter
-    # # print("Kernel:")
-    # # print(kernel)
-    # # output = cv.filter2D(mask, 1, kernel)
     # middle point
     m_lng_pixel = int((s_lng_pixel + e_lng_pixel) / 2)
     m_lat_pixel = int((s_lat_pixel + e_lat_pixel) / 2)
