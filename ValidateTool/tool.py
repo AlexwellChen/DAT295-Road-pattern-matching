@@ -578,7 +578,7 @@ class Road:
         with open(CSV_FILE_LOC, 'a', encoding='UTF8', newline='') as f:
             writer = csv.writer(f)
             idx = 0
-            print(self.way_locs)
+            # print(self.way_locs)
             for idx in range(1, len(self.way_locs)):
                 isTrafficSignal, isCrossing, isBusStop, isOther, isIntersection = False, False, False, False, False
                 # isCrossing = False
@@ -700,29 +700,39 @@ if __name__ == '__main__':
 
     payload = {}
     headers = {}
-    
-    if WAYPOINTS is not None:
-        directions_result = requests.request(
-            "GET",
-            url %
-            (ORIGIN,
-            DESTINATION,
-            WAYPOINTS,
-            str(DEPARTURE_TIME)),
-            headers=headers,
-            data=payload).json()
+    use_local = True
+    if use_local is False:
+        if WAYPOINTS is not None:
+            directions_result = requests.request(
+                "GET",
+                url %
+                (ORIGIN,
+                DESTINATION,
+                WAYPOINTS,
+                str(DEPARTURE_TIME)),
+                headers=headers,
+                data=payload).json()
+        else:
+            directions_result = requests.request(
+                "GET",
+                url %
+                (ORIGIN,
+                DESTINATION,
+                str(DEPARTURE_TIME)),
+                headers=headers,
+                data=payload).json()
+        with open("sample.json", "w") as outfile:
+            import json
+            json.dump(directions_result, outfile)
+        with open("current_time.txt", "w") as outfile:
+            outfile.write(str(DEPARTURE_TIME))
     else:
-        directions_result = requests.request(
-            "GET",
-            url %
-            (ORIGIN,
-            DESTINATION,
-            str(DEPARTURE_TIME)),
-            headers=headers,
-            data=payload).json()
-    with open("sample.json", "w") as outfile:
-        import json
-        json.dump(directions_result, outfile)
+        # use local sample.json
+        with open("sample.json", "r") as outfile:
+            import json
+            directions_result = json.load(outfile)
+        with open("current_time.txt", "r") as outfile:
+            DEPARTURE_TIME = int(outfile.read())
 
     departure_time = datetime.fromtimestamp(DEPARTURE_TIME, timezone.utc)
     duration = directions_result['routes'][0]["legs"][0]["duration_in_traffic"]["value"]
@@ -799,11 +809,11 @@ if __name__ == '__main__':
                 COLOR_TIME,
                 leg["polyline"]["points"]))
         # GRQ should be added here
-        # ways[i].export()
+        ways[i].export()
         # ways[i].plot_map()
-        if i == 1:
-            GRQ(ways[i])
-            break
+        # if i == 1:
+        #     GRQ(ways[i])
+        #     break
 
     map.save('./output/MAP_' + FILE_NAME + '.html')
 

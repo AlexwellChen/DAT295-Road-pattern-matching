@@ -268,7 +268,7 @@ def GRQ(way: Road):
     from os.path import exists
     filename = str(region['x_start']) + '_' + \
         str(region['y_start']) + '_' + str(way.duration)
-    file_exists = exists('./cache/' + filename + '.png')
+    file_exists = exists('./cache/' + filename + '.png') # Use local cache
     if(file_exists is False):
         scraper.scraper(way.duration, 15, region, './cache/' + filename + '.png')
 
