@@ -189,10 +189,12 @@ class Scraper:
 
     def build_tile_region(self, start_lat, start_lon, end_lat, end_lon, zoom):
         sx, sy = self.coordinate_to_tile(start_lat, start_lon, zoom)
+        
         ex, ey = self.coordinate_to_tile(end_lat, end_lon, zoom)
+        
         if(sx > ex):
             sx, ex = ex, sx
-        if(ey > ey):
+        if(sy > ey):
             sy, ey = ey, sy
 
         return {
@@ -809,9 +811,10 @@ if __name__ == '__main__':
                 COLOR_TIME,
                 leg["polyline"]["points"]))
         # GRQ should be added here
-        ways[i].export()
+        # ways[i].export()
         # ways[i].plot_map()
-        # if i == 1:
+        print(GRQ(ways[i]))
+        # if i == 2:
         #     GRQ(ways[i])
         #     break
 

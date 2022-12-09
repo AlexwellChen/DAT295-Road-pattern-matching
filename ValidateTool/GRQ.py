@@ -1,26 +1,11 @@
 from codecs import utf_8_encode
 import googlemaps
 from datetime import datetime, timedelta, timezone
-from pexpect import TIMEOUT
-import requests
-import folium
-from folium.vector_layers import PolyLine
-import polyline
-from geopy import distance
-import csv
-import os
-import random
-import math
-from PIL import Image
-from bs4 import BeautifulSoup
-from fake_useragent import UserAgent
-from io import BytesIO
-from tqdm import tqdm
 import cv2 as cv
 import calendar
 import time
 from datetime import datetime
-from matplotlib.animation import FFMpegWriter
+
 gmaps = googlemaps.Client(key="AIzaSyAFqM8oZMQAJaPvS2qYcFzZpAluCr0KywQ")
 
 # G, Y, R, D
@@ -244,26 +229,38 @@ def PathFinding(s_x, s_y, e_x, e_y, img):
             new_y = point[1] + py[i]
             if new_x >= 0 and new_x < cropped_h and new_y >= 0 and new_y < cropped_w:
                 cropped_mask[new_x][new_y] = 1
-    plt.imshow(cropped_img)
-    plt.imshow(cropped_mask, alpha=0.5)
-    plt.show()
-
-
-def GRQ(way: Road):
-    def calc_diff(pixel, i):
+    
+    t = [0, 0, 0, 0]
+    for i in range(cropped_img.shape[0]):
+        for j in range(cropped_img.shape[1]):
+            if(cropped_img[i][j][0] == 255 and cropped_img[i][j][1] == 255 and cropped_img[i][j][2] == 255 and cropped_mask[i][j] == 0):
+                continue
+            for k in range(len(BG_COLOR)):
+                if calc_diff(cropped_img[i][j], k):
+                    t[k] += 1
+        s = sum(t)
+        try:
+            t = [i / s for i in t]
+        except BaseException:
+            t = [0, 0, 0, 0]
+        return t
+    
+def calc_diff(pixel, i):
         return (
             (pixel[0] - BG_COLOR[i][0]) ** 2
             + (pixel[1] - BG_COLOR[i][1]) ** 2
             + (pixel[2] - BG_COLOR[i][2]) ** 2
         ) < COLOR_SIMILARITY
 
+
+def GRQ(way: Road):
     start_point_lat = way.start_pos[0]
     start_point_lng = way.start_pos[1]
 
     end_point_lat = way.end_pos[0]
     end_point_lng = way.end_pos[1]
 
-    region = scraper.build_tile_region(start_point_lat, start_point_lng, end_point_lat, end_point_lng, 15)
+    region = scraper.build_tile_region(start_point_lat, start_point_lng, start_point_lat, start_point_lng, 15)
     print(region)
     from os.path import exists
     filename = str(region['x_start']) + '_' + \
@@ -278,6 +275,9 @@ def GRQ(way: Road):
     ye = ys + 1
     (xs, ys) = scraper.num2deg(xs, ys, 15)
     (xe, ye) = scraper.num2deg(xe, ye, 15)
+
+    print("Start point: ", xs, ys)
+    print("End point: ", xe, ye)
 
     s_lng = (start_point_lng - ys) / (ye - ys)
     s_lat = (start_point_lat - xs) / (xe - xs)
@@ -296,48 +296,30 @@ def GRQ(way: Road):
     s_lat_pixel = int(w * s_lat)
     e_lng_pixel = int(h * e_lng)
     e_lat_pixel = int(w * e_lat)
+    try: 
+        t = PathFinding(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo)
+    except:
+        print("PathFinding error, use default")
+        # middle point
+        m_lng_pixel = int((s_lng_pixel + e_lng_pixel) / 2)
+        m_lat_pixel = int((s_lat_pixel + e_lat_pixel) / 2)
 
-    print("image size: ", h, w)
-    print("start point: ", s_lat_pixel, s_lng_pixel)
-    print("end point: ", e_lat_pixel, e_lng_pixel)
-
-    # Create a zero mask same size as image
-    mask = np.zeros(logo.shape[0:2])
-    # Set start and end point to 1
-    mask[s_lat_pixel][s_lng_pixel] = 1
-    mask[e_lat_pixel][e_lng_pixel] = 2
-    PathFinding(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo)
-    # middle point
-    m_lng_pixel = int((s_lng_pixel + e_lng_pixel) / 2)
-    m_lat_pixel = int((s_lat_pixel + e_lat_pixel) / 2)
-
-    # max distance from middle point to start/end point
-    max_distance = max(abs(s_lat_pixel - m_lat_pixel), abs(s_lng_pixel - m_lng_pixel))
-    crop_distance = 20 + max_distance
-    cropped = logo[max(0, m_lat_pixel - crop_distance): min(w, m_lat_pixel + crop_distance),
-                    max(0, m_lng_pixel - crop_distance): min(h, m_lng_pixel + crop_distance)]
-    # mask_cropped = mask[max(0, m_lat_pixel - crop_distance): min(w, m_lat_pixel + crop_distance),
-    #                 max(0, m_lng_pixel - crop_distance): min(h, m_lng_pixel + crop_distance)]
-    
-    # # cv.imwrite("./cache/TMP_CROP.png",
-    # #            cv.cvtColor(cropped, cv.COLOR_RGB2BGR))
-    # # print(cropped.shape)
-    # # Show the image
-    # from matplotlib import pyplot as plt
-    # plt.imshow(cropped)
-    # plt.imshow(mask_cropped, alpha=0.5)
-    # plt.show()
-    t = [0, 0, 0, 0]
-    for i in range(cropped.shape[0]):
-        for j in range(cropped.shape[1]):
-            if(cropped[i][j][0] == 255 and cropped[i][j][1] == 255 and cropped[i][j][2] == 255):
-                continue
-            for k in range(len(BG_COLOR)):
-                if calc_diff(cropped[i][j], k):
-                    t[k] += 1
-    s = sum(t)
-    try:
-        t = [i / s for i in t]
-    except BaseException:
+        # max distance from middle point to start/end point
+        max_distance = max(abs(s_lat_pixel - m_lat_pixel), abs(s_lng_pixel - m_lng_pixel))
+        crop_distance = 20 + max_distance
+        cropped = logo[max(0, m_lat_pixel - crop_distance): min(w, m_lat_pixel + crop_distance),
+                        max(0, m_lng_pixel - crop_distance): min(h, m_lng_pixel + crop_distance)]
         t = [0, 0, 0, 0]
-    return t
+        for i in range(cropped.shape[0]):
+            for j in range(cropped.shape[1]):
+                if(cropped[i][j][0] == 255 and cropped[i][j][1] == 255 and cropped[i][j][2] == 255):
+                    continue
+                for k in range(len(BG_COLOR)):
+                    if calc_diff(cropped[i][j], k):
+                        t[k] += 1
+        s = sum(t)
+        try:
+            t = [i / s for i in t]
+        except BaseException:
+            t = [0, 0, 0, 0]
+        return t
