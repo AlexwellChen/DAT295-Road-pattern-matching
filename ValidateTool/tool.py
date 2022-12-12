@@ -47,8 +47,8 @@ DEPARTURE_TIME = ts
 week_dict = {1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday', 0: ' Sunday'}
 d = week_dict.get(datetime.today().isoweekday())
 date = datetime.today().strftime("%m %d, %Y")
-# TIME = "Sunday, July 24, 2022 8:00:00 AM GMT+02:00"
-TIME = d + ", " + date
+TIME = "Sunday, July 24, 2022 8:00:00 AM GMT+02:00"
+# TIME = d + ", " + date
 LOC = [
    
 "Nuremberg, Germany",
@@ -813,10 +813,10 @@ if __name__ == '__main__':
         # GRQ should be added here
         # ways[i].export()
         # ways[i].plot_map()
-        print(GRQ(ways[i]))
-        # if i == 2:
-        #     GRQ(ways[i])
-        #     break
+        # print(GRQ(ways[i]))
+        if i == 1:
+            GRQ(ways[i])
+            break
 
     map.save('./output/MAP_' + FILE_NAME + '.html')
 

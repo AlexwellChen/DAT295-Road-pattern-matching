@@ -32,8 +32,8 @@ DEPARTURE_TIME = ts
 week_dict = {1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday', 0: ' Sunday'}
 d = week_dict.get(datetime.today().isoweekday())
 date = datetime.today().strftime("%m %d, %Y")
-# TIME = "Sunday, July 24, 2022 8:00:00 AM GMT+02:00"
-TIME = d + ", " + date
+TIME = "Sunday, July 24, 2022 8:00:00 AM GMT+02:00"
+# TIME = d + ", " + date
 LOC = [
    
 "Nuremberg, Germany",
@@ -175,7 +175,7 @@ def PathFinding(s_x, s_y, e_x, e_y, img):
     print("Cropped image size: ", cropped_h, cropped_w)
     find_flag = False
     result = []
-    animation = False
+    animation = True
     def dfs(cropped_bin, visited, x, y, predistance):
         # boundary check
         nonlocal animation
@@ -252,6 +252,76 @@ def calc_diff(pixel, i):
             + (pixel[2] - BG_COLOR[i][2]) ** 2
         ) < COLOR_SIMILARITY
 
+def PathFinding_Conv(s_x, s_y, e_x, e_y, img):
+
+    img = np.array(img)
+    h, w = img.shape[:2]
+    bin_img = np.zeros((img.shape[0], img.shape[1]))
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            if img[i][j][0] == 255 and img[i][j][1] == 255 and img[i][j][2] == 255:
+                bin_img[i][j] = 0
+            else:
+                bin_img[i][j] = 1
+    
+    # mask = np.zeros((img.shape[0], img.shape[1]))
+   
+    crop_distance = 60
+    cropped_bin = bin_img[max(0, s_x - crop_distance): min(w, s_x + crop_distance),
+                        max(0, s_y - crop_distance): min(h, s_y + crop_distance)]
+    cropped_img = img[max(0, s_x - crop_distance): min(w, s_x + crop_distance),
+                        max(0, s_y - crop_distance): min(h, s_y + crop_distance)]
+
+    # Direction vector from start to end
+    directionVector = [e_x - s_x, e_y - s_y]
+    # Normalize the direction vector
+    directionVector = directionVector / np.linalg.norm(directionVector)
+    # Slope of the direction vector
+    slope = directionVector[1] / directionVector[0]
+
+    # Gen Convolution kernel by direction vector
+    kernel_size = 21
+    kernel = np.zeros((kernel_size, kernel_size))
+    for i in range(kernel_size):
+        j = int(slope * (i - kernel_size//2) + kernel_size//2)
+        # check whether the point is in the kernel
+        if j >= 0 and j < kernel_size:
+            kernel[i][j] = 1
+    
+    # Convolution
+    output = cv.filter2D(cropped_bin, 1, kernel)
+
+    threshold = int(kernel.sum() * 0.9)
+    # Filter the output
+
+	# # Without interest area
+    # output[output < threshold] = 0
+    # output[output >= threshold] = 1
+
+    showImgFlag = True
+    if showImgFlag:
+        plt.cla()
+        plt.imshow(cropped_img)
+        plt.imshow(output, alpha=0.5)
+        plt.show()
+        plt.pause(0.5)
+    
+    t = [0, 0, 0, 0]
+    for i in range(cropped_img.shape[0]):
+        for j in range(cropped_img.shape[1]):
+            if(cropped_img[i][j][0] == 255 and cropped_img[i][j][1] == 255 and cropped_img[i][j][2] == 255 and output[i][j] == 0):
+                continue
+            for k in range(len(BG_COLOR)):
+                if calc_diff(cropped_img[i][j], k):
+                    t[k] += 1
+        s = sum(t)
+        try:
+            t = [i / s for i in t]
+        except BaseException:
+            t = [0, 0, 0, 0]
+        return t
+
+
 
 def GRQ(way: Road):
     start_point_lat = way.start_pos[0]
@@ -276,8 +346,8 @@ def GRQ(way: Road):
     (xs, ys) = scraper.num2deg(xs, ys, 15)
     (xe, ye) = scraper.num2deg(xe, ye, 15)
 
-    print("Start point: ", xs, ys)
-    print("End point: ", xe, ye)
+    # print("Start point: ", xs, ys)
+    # print("End point: ", xe, ye)
 
     s_lng = (start_point_lng - ys) / (ye - ys)
     s_lat = (start_point_lat - xs) / (xe - xs)
@@ -297,9 +367,12 @@ def GRQ(way: Road):
     e_lng_pixel = int(h * e_lng)
     e_lat_pixel = int(w * e_lat)
     try: 
-        t = PathFinding(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo)
-    except:
-        print("PathFinding error, use default")
+        # t = PathFinding(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo)
+        t = PathFinding_Conv(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo)
+        return t
+    except Exception as e:
+        print("Error: ", e)
+        print("Conv error, use default")
         # middle point
         m_lng_pixel = int((s_lng_pixel + e_lng_pixel) / 2)
         m_lat_pixel = int((s_lat_pixel + e_lat_pixel) / 2)
