@@ -252,7 +252,7 @@ def calc_diff(pixel, i):
             + (pixel[2] - BG_COLOR[i][2]) ** 2
         ) < COLOR_SIMILARITY
 
-def PathFinding_Conv(s_x, s_y, e_x, e_y, img):
+def PathFinding_Conv(s_x, s_y, e_x, e_y, img, img_name):
 
     img = np.array(img)
     h, w = img.shape[:2]
@@ -265,7 +265,13 @@ def PathFinding_Conv(s_x, s_y, e_x, e_y, img):
                 bin_img[i][j] = 1
     
     # mask = np.zeros((img.shape[0], img.shape[1]))
-   
+    # Set start point to blue
+    img[s_x][s_y] = [0, 0, 0]
+    img[s_x+1][s_y] = [0, 0, 0]
+    img[s_x][s_y+1] = [0, 0, 0]
+    img[s_x-1][s_y] = [0, 0, 0]
+    img[s_x][s_y-1] = [0, 0, 0]
+
     crop_distance = 60
     cropped_bin = bin_img[max(0, s_x - crop_distance): min(w, s_x + crop_distance),
                         max(0, s_y - crop_distance): min(h, s_y + crop_distance)]
@@ -291,39 +297,53 @@ def PathFinding_Conv(s_x, s_y, e_x, e_y, img):
     # Convolution
     output = cv.filter2D(cropped_bin, 1, kernel)
 
-    threshold = int(kernel.sum() * 0.9)
+    threshold = int(kernel.sum() * 0.8)
     # Filter the output
 
-	# # Without interest area
-    # output[output < threshold] = 0
-    # output[output >= threshold] = 1
+	# Without interest area
+    output[output < threshold] = 0
+    output[output >= threshold] = 1
 
     showImgFlag = True
     if showImgFlag:
-        plt.cla()
-        plt.imshow(cropped_img)
-        plt.imshow(output, alpha=0.5)
-        plt.show()
-        plt.pause(0.5)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.imshow(cropped_img)
+        ax.imshow(output, alpha=0.3)
+        # Save fig
+        fig.savefig("validate_imgs/" + img_name + ".png")
+        
+        # ax.set_title("Actual trajectory")
+        # human_check = int(input("Human check: 1. Mistake 2.Fair enough 3. Good 4. Perfect\n"))
+        # fig.canvas.draw()
+        # fig.canvas.flush_events()
+        # plt.close(fig)
+        
+    
+    # Save cropped image overlayed with output
+    
     
     t = [0, 0, 0, 0]
     for i in range(cropped_img.shape[0]):
         for j in range(cropped_img.shape[1]):
-            if(cropped_img[i][j][0] == 255 and cropped_img[i][j][1] == 255 and cropped_img[i][j][2] == 255 and output[i][j] == 0):
-                continue
-            for k in range(len(BG_COLOR)):
-                if calc_diff(cropped_img[i][j], k):
-                    t[k] += 1
-        s = sum(t)
-        try:
-            t = [i / s for i in t]
-        except BaseException:
-            t = [0, 0, 0, 0]
-        return t
+            # Check whether the pixel is in the output
+            if output[i][j] != 0:
+                if(cropped_img[i][j][0] == 255 and cropped_img[i][j][1] == 255 and cropped_img[i][j][2] == 255):
+                    continue
+                for k in range(len(BG_COLOR)):
+                    if calc_diff(cropped_img[i][j], k):
+                        t[k] += 1
+
+    s = sum(t)
+    try:
+        t = [i / s for i in t]
+    except BaseException:
+        t = [0, 0, 0, 0]
+    return t, cropped_img
 
 
 
-def GRQ(way: Road):
+def GRQ(way: Road, img_name):
     start_point_lat = way.start_pos[0]
     start_point_lng = way.start_pos[1]
 
@@ -368,8 +388,7 @@ def GRQ(way: Road):
     e_lat_pixel = int(w * e_lat)
     try: 
         # t = PathFinding(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo)
-        t = PathFinding_Conv(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo)
-        return t
+        return PathFinding_Conv(s_lat_pixel, s_lng_pixel, e_lat_pixel, e_lng_pixel, logo, img_name)
     except Exception as e:
         print("Error: ", e)
         print("Conv error, use default")
@@ -395,4 +414,4 @@ def GRQ(way: Road):
             t = [i / s for i in t]
         except BaseException:
             t = [0, 0, 0, 0]
-        return t
+        return t, cropped

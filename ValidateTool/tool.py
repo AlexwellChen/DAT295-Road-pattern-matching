@@ -56,7 +56,7 @@ LOC = [
 "Brunswick, Germany",
 "Richmond, Virginia, USA"]
 
-ORIGIN =     "Hanover, Germany"
+ORIGIN =     "Nuremberg, Germany"
 DESTINATION = "Hamburg, Germany" 
 WAYPOINTS = None
 # WAYPOINTS = "A9, 85095 Denkendorf, Germany"
@@ -702,7 +702,7 @@ if __name__ == '__main__':
 
     payload = {}
     headers = {}
-    use_local = True
+    use_local = False
     if use_local is False:
         if WAYPOINTS is not None:
             directions_result = requests.request(
@@ -728,6 +728,7 @@ if __name__ == '__main__':
             json.dump(directions_result, outfile)
         with open("current_time.txt", "w") as outfile:
             outfile.write(str(DEPARTURE_TIME))
+        print("Get way points from Google Done!")
     else:
         # use local sample.json
         with open("sample.json", "r") as outfile:
@@ -801,6 +802,11 @@ if __name__ == '__main__':
 
     ways = []
 
+    import pandas as pd
+    # Create a csv file, cols: img_id, color_vec, human_check
+    df = pd.DataFrame(columns=['img_id', 'color_vec', 'human_check'])
+    prefix = ORIGIN.split(',')[0] + '_' + DESTINATION.split(',')[0] + '_'
+    img_path = 'validate_imgs/' + prefix
     for i, leg in enumerate(
             tqdm(directions_result['routes'][0]["legs"][0]["steps"])):
         ways.append(
@@ -813,11 +819,18 @@ if __name__ == '__main__':
         # GRQ should be added here
         # ways[i].export()
         # ways[i].plot_map()
-        # print(GRQ(ways[i]))
-        if i == 1:
-            GRQ(ways[i])
-            break
+        color_vec, img = GRQ(ways[i], img_name=prefix + str(i) + '.png')
+        # numpy array to image
+        # img = Image.fromarray(img)
+        # img.save(img_path + prefix + str(i) + '.png')
+        # store the color_vec
+        df.loc[i] = [prefix + str(i), color_vec, None]
 
+        # # print(GRQ(ways[i]))
+        # if i == 1:
+        #     GRQ(ways[i])
+        #     break
+    df.to_csv('validate_imgs/' + prefix + 'color_vec.csv', index=False)
     map.save('./output/MAP_' + FILE_NAME + '.html')
 
     
