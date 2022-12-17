@@ -56,7 +56,8 @@ LOC = [
 "Brunswick, Germany",
 "Richmond, Virginia, USA"]
 
-ORIGIN =     "Nuremberg, Germany"
+# ORIGIN =     "Nuremberg, Germany"
+ORIGIN =    "Hanover, Germany"
 DESTINATION = "Hamburg, Germany" 
 WAYPOINTS = None
 # WAYPOINTS = "A9, 85095 Denkendorf, Germany"
@@ -819,19 +820,13 @@ if __name__ == '__main__':
         # GRQ should be added here
         # ways[i].export()
         # ways[i].plot_map()
-        color_vec, img = GRQ(ways[i], img_name=prefix + str(i) + '.png')
-        # numpy array to image
-        # img = Image.fromarray(img)
-        # img.save(img_path + prefix + str(i) + '.png')
-        # store the color_vec
-        df.loc[i] = [prefix + str(i), color_vec, None]
-
-        # # print(GRQ(ways[i]))
-        # if i == 1:
-        #     GRQ(ways[i])
-        #     break
-    df.to_csv('validate_imgs/' + prefix + 'color_vec.csv', index=False)
-    map.save('./output/MAP_' + FILE_NAME + '.html')
+        if i == 1:
+            color_vec, img = GRQ(ways[i], img_name=prefix + str(i) + '.png')
+            break
+        # color_vec, img = GRQ(ways[i], img_name=prefix + str(i) + '.png')
+    #     df.loc[i] = [prefix + str(i), color_vec, None]
+    # df.to_csv('validate_imgs/' + prefix + 'color_vec.csv', index=False)
+    # map.save('./output/MAP_' + FILE_NAME + '.html')
 
     
 

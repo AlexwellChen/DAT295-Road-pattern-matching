@@ -4,6 +4,9 @@ from post import *
 import tools 
 import re
 
+# Close pandas warning
+pd.options.mode.chained_assignment = None
+
 if __name__ == "__main__":
     # Read the data
     # Columns: [Filename, index, color_code]
@@ -27,6 +30,10 @@ if __name__ == "__main__":
     
     path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
     samples_groupby_filename = manual_sample.groupby('Filename')
+    # samples_groupby_filename = random_sample.groupby('Filename')
+
+    # result df
+    result = pd.DataFrame(columns=['Filename', 'index', 'Speed Limit', 'color_code', 'SPQ_color_code', 'Old_color_code'])
     
     new_accuract = 0
     old_accuract = 0
@@ -45,11 +52,10 @@ if __name__ == "__main__":
             up_limit = 30
             longitude_seq = []
             latitude_seq = []
-            if index == 1927:
-                print('here')
+            if index in sample_index:
+            # if index == 3856:
                 for i in range(up_limit):
                     # Change every 6 items
-                    new_index = index
                     lng_val = (_input['Longitude[deg]'].at[index - i] - NW_lng)/Y
                     lat_val = (_input['Latitude[deg]'].at[index - i] - NW_lat)/X
                     # adptiv track length by delta
@@ -59,18 +65,16 @@ if __name__ == "__main__":
                     rest_point_delta, max_delta = tools.point_delta(longitude_seq, latitude_seq, idx)
                     if max_delta > 20:
                         break
-                color_code = tools.image_process_position_seq(longitude_seq, latitude_seq, idx, rest_point_delta, max_delta)
-                # old_color_code = tools.image_process(longitude_seq[0], latitude_seq[0], idx)
-                # acutal_index = group[group['index'] == index].index.tolist()[0]
-                break
-                # acutal_color_code = group['color_code'].at[acutal_index]
-                # if color_code == acutal_color_code:
-                #     new_accuract += 1
-                # if old_color_code == acutal_color_code:
-                #     old_accuract += 1
-                # total += 1
-        break
-        
-    # print("New accuracy: ", new_accuract/total)
-    # print("Old accuracy: ", old_accuract/total)
+                try:
+                    dir_color_code, orig_color_code = tools.image_process_position_seq(longitude_seq, latitude_seq, idx, rest_point_delta, max_delta, flag=False)
+                except:
+                    dir_color_code = tools.image_process(longitude_seq[0], latitude_seq[0], idx)
+                    orig_color_code = dir_color_code
+                old_color_code = tools.image_process(longitude_seq[0], latitude_seq[0], idx)
+                
+                acutal_index = group[group['index'] == index].index.tolist()[0]
+                acutal_color_code = group['color_code'].at[acutal_index]
+                result = result.append({'Filename': filename, 'index': index, 'Speed Limit': row['Speed Limit[km/h]'], 'color_code': acutal_color_code, 'dir_SPQ_color_code': dir_color_code, 'original_SPQ_color_code': orig_color_code, 'Old_color_code': old_color_code}, ignore_index=True)
+                
+    result.to_csv('result/manual_SPQ_Accuracy.csv', index=False)
     

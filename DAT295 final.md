@@ -13,3 +13,23 @@ We know that the trajectory of a vehicle must be close to the shape of the road,
 在我们获得了感兴趣的道路之后，我们又面临了新的问题。通常情况下，道路具有两种方向的车道，并且两个方向上的道路交通状况可能存在差异。因此我们需要使用轨迹的方向来判断当前我们究竟是在哪一个车道上行驶，在感兴趣道路中排除方向不同的车道。
 
 我们使用的方法是对不同方向的车道在卷积核中赋予不同的权重，这样在进行卷积操作后会产生不同的响应值，与我们当前行驶方向相同的道路会具有更高的响应。首先我们仍然按照原有的方法构建初始卷积核，然后计算当前行驶轨迹的方向向量，我们将卷积核中每一个特征点都向方向向量逆时针旋转九十度的方向平移x个像素（通常为6或11，分别对应不同的道路宽度）对应位置即为方向相反的车道。我们将当前行驶方向的车道的权重设置为2，对向车道的权重设置为1，这样可以保证我们能够探测到两个方向的道路并且有所区别。
+
+
+
+**GRQ**
+
+We design a depth-first search based road finding algorithm to get the possible road locations in the image. This algorithm converts the road traffic image returned by the API into a binary image, i.e., 1 where there is a road and 0 where there is no road, and the advantage of this processing is that we can easily apply depth-first search.
+
+Next, we calculate the middle point between the start and end points, and uses this point to crop the binary image to a region around the middle point. This is done to reduce the search space and improve the efficiency of the algorithm. The code then sets the start and end points within the cropped binary image to the new coordinates of the start and end points within the cropped image.
+
+Finally, we use DFS to search for a path from the new start point to the new end point on the cropped binary image. The search is performed by exploring all possible paths from the start point, moving in the four cardinal directions (up, down, left, right). If the end point is reached, the search is stopped and the path is returned. If the end point is not reached after exploring all possible paths, the search is stopped and an empty path is returned.
+
+我们还加入了剪枝技巧，通过设置当前点与终点的距离，限制每一个搜索点的距离必须小于前一次来保证算法的快速收敛。但是这种贪心剪枝会在某些复杂情况下失效，导致算法的鲁棒性降低。
+
+尽管理论上基于DFS的寻路算法是可行的，但是由于API返回的图像范围与Road对象中start point和end point的范围不匹配，导致在实际使用中很可能出现Out of boundry的错误，因此在实际的GRQ中并未采取此种方法。
+
+
+
+为了提升算法的鲁棒性，我们仍然使用基于卷积的寻路算法。尽管这种方法准确性低于DFS，但是在大部分情况下都可以正常工作，并且最终可用性相较于原始的方法也有一定的提升。
+
+我们使用与SPQ相似的算法流程，首先我们需要根据道路的start point以及end point生成一个卷积核。与SPQ不同的是我们仅使用start point和end point的方向信息作为生成卷积核的依据，而不是实际参与卷积核的生成。我们将卷积核的大小固定为21*21，然后根据方向信息在卷积核中设置一个方向相同宽度为1的方向特征。这个卷积核可以探测到与我们目标前进方向相同的道路，忽略那些与前进方向无关的道路。通过调整最终的感受阈值，我们可以获得一个近似的“感兴趣区域”。

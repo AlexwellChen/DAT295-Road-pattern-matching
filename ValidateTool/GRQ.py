@@ -159,10 +159,6 @@ def PathFinding(s_x, s_y, e_x, e_y, img):
             if cropped_bin[i][j] == 20:
                 new_e_x = i
                 new_e_y = j
-    
-    # plt.imshow(cropped_img)
-    # plt.imshow(cropped_bin)
-    # plt.show()
 
     # # Then use DFS to find the path from s_x, s_y to e_x, e_y in bin_img
     print("New start point: ", new_s_x, new_s_y)
@@ -175,7 +171,7 @@ def PathFinding(s_x, s_y, e_x, e_y, img):
     print("Cropped image size: ", cropped_h, cropped_w)
     find_flag = False
     result = []
-    animation = True
+    animation = False
     def dfs(cropped_bin, visited, x, y, predistance):
         # boundary check
         nonlocal animation
@@ -200,6 +196,9 @@ def PathFinding(s_x, s_y, e_x, e_y, img):
             path.append((x, y))
             # print(path)
             result = path[:]
+            plt.imshow(cropped_bin)
+            plt.imshow(visited, alpha=0.5)
+            plt.show()
             return
         for i in range(4):
             new_x = x + px[i]
@@ -220,6 +219,7 @@ def PathFinding(s_x, s_y, e_x, e_y, img):
     distance_s_e = (new_s_x - new_e_x) ** 2 + (new_s_y - new_e_y) ** 2
     distance_s_e = int(distance_s_e ** 0.5)
     dfs(cropped_bin, visited, new_s_x, new_s_y, distance_s_e)
+    
     
     for point in result:
         cropped_mask[point[0]][point[1]] = 1

@@ -5,6 +5,7 @@ from PIL import Image
 import math
 from datetime import date, datetime, timedelta
 
+
 np.set_printoptions(threshold=np.inf)
 
 # green, yellow, red, dark red
@@ -180,7 +181,7 @@ def image_process(lng: float, lat: float, idx, output=None):
 		lat = int(w * lat)
 		cropped = logo[max(0, lat - x): min(w, lat + x),
 		          max(0, lng - x): min(h, lng + x)]  # [y0:y1, x0:x1]
-		plt.imshow(cropped)
+		# plt.imshow(cropped)
 		# cv.imwrite("./tmp/" + output + ".png",
 		#            cv.cvtColor(logo, cv.COLOR_RGB2BGR))
 		# cv.line(logo, (0, 0), (w, h), (0, 255, 0), thickness=2)
@@ -264,7 +265,7 @@ def point_delta(lng_seq, lat_seq, idx):
 	return rest_point_delta, max_delta
 
 
-def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delta, output=None):
+def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delta, flag=False, origin=False):
 	# cv.line(logo, (lng, 0), (lng, h), (0, 255, 255), thickness=2)
 	# cv.line(logo, (0, lat), (w, lat), (255, 0, 0), thickness=2)
 	try:
@@ -329,7 +330,6 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		# Apply filter
 		# print("Kernel size: ", kernel.shape)
 		# print("Image size: ", cropped_road.shape)
-		
 		output = cv.filter2D(cropped_road, 1, direct_kernel)  # Ouptput is the mask of intrerested area
 		original_kernel_output = cv.filter2D(cropped_road, 1, kernel)
 		threshold = int(direct_kernel.sum() * 0.65)
@@ -348,8 +348,10 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 		                     img_half_width - center_width // 2:img_half_width + center_width // 2]
 		center_crop_image = cropped[img_half_width - center_width // 2:img_half_width + center_width // 2,
 		                    img_half_width - center_width // 2:img_half_width + center_width // 2]
+		center_crop_original_kernel_output = original_kernel_output[img_half_width - center_width // 2:img_half_width + center_width // 2,
+		                     img_half_width - center_width // 2:img_half_width + center_width // 2]
 		
-		show_img_flag = True
+		show_img_flag = flag
 		if show_img_flag:
 			# Mix the point on map with the cropped image
 			fig = plt.figure(figsize=[10, 10])
@@ -376,10 +378,21 @@ def image_process_position_seq(lng_seq, lat_seq, idx, rest_point_delta, max_delt
 				for k in range(len(bg_color)):
 					if calc_diff(center_crop_image[i][j], k):
 						t[k] += 1
-		return t.index(max(t))
+		dirtect_res = t.index(max(t))
+
+		t = [0, 0, 0, 0]
+		for i in range(center_crop_image.shape[0]):
+			for j in range(center_crop_image.shape[1]):
+				if (center_crop_image[i][j][0] == 255 and center_crop_image[i][j][1] == 255 and center_crop_image[i][j][
+					2] == 255) or center_crop_original_kernel_output[i][j] == 0:
+					continue
+				for k in range(len(bg_color)):
+					if calc_diff(center_crop_image[i][j], k):
+						t[k] += 1
+		original_res = t.index(max(t))
+		return dirtect_res, original_res
 	except Exception as e:
-		print(e)
-		return -1
+		raise e
 
 
 def center_crop(img, dim):
