@@ -52,8 +52,8 @@ if __name__ == "__main__":
             up_limit = 30
             longitude_seq = []
             latitude_seq = []
-            if index in sample_index:
-            # if index == 3856:
+            # if index in sample_index:
+            if index == 516:
                 for i in range(up_limit):
                     # Change every 6 items
                     lng_val = (_input['Longitude[deg]'].at[index - i] - NW_lng)/Y
