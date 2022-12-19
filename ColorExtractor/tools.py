@@ -69,50 +69,9 @@ def DDA(x1, y1, x2, y2, point_list):
 
 
 def gen_Filter(max_lat_delta, max_lng_delta, rest_point_delta):
-	# cv.line(logo, (lng, 0), (lng, h), (0, 255, 255), thickness=2)
-	# cv.line(logo, (0, lat), (w, lat), (255, 0, 0), thickness=2)
-	
-	# lng = lng_seq[0]
-	# lat = lat_seq[0]
-	
-	# lng = int(h*lng)
-	# lat = int(w*lat)
-	
-	# rest_point_delta = [(0, 0)]
-	# max_lng_delta = 0
-	# max_lat_delta = 0
-	# for i in range(1, len(lng_seq)):
-	#     lng_ = int(h*lng_seq[i])
-	#     lat_ = int(w*lat_seq[i])
-	#     print(lat_, lng_)
-	#     max_lat_delta = max(max_lat_delta, abs(lat_-lat))
-	#     max_lng_delta = max(max_lng_delta, abs(lng_-lng))
-	#     rest_point_delta.append((lat_ - lat, lng_ - lng))
-	# rest_point_delta = list(set(rest_point_delta))
 	max_delta = max(max_lat_delta, max_lng_delta)
-	# if max_delta % 2 != 0:
-	#     max_delta += 1
-	
-	# direction = -1
-	# if max_lat_delta > max_lng_delta:
-	#     rest_point_delta.sort(key=lambda x: x[0])
-	#     if len(rest_point_delta) != 1:
-	#         dx = rest_point_delta[0][0] - rest_point_delta[1][0]
-	#         if dx < 0:
-	#             direction = 1 # down
-	#         elif dx > 0:
-	#             direction = 2 # up
-	# else:
-	#     rest_point_delta.sort(key=lambda x: x[1])
-	#     print(rest_point_delta)
-	# DDA interpolation
-	
-	interpolated_point = []
-	for i in range(len(rest_point_delta) - 1):
-		DDA(rest_point_delta[i][0], rest_point_delta[i][1],
-		    rest_point_delta[i + 1][0], rest_point_delta[i + 1][1], interpolated_point)
-	interpolated_point.append(rest_point_delta[-1])
-	interpolated_point = list(set(interpolated_point))
+
+	# Convert the absolute coordinates of the trajectory to relative coordinates
 	min_val = 0
 	for i in range(len(rest_point_delta)):
 		min_val = min(min_val, rest_point_delta[i][0], rest_point_delta[i][1])
@@ -121,8 +80,6 @@ def gen_Filter(max_lat_delta, max_lng_delta, rest_point_delta):
 		rest_point_delta[i] = (rest_point_delta[i][0] - min_val, rest_point_delta[i][1] - min_val)
 	
 	interpolated_point = []
-	# print("rest_point_delta")
-	# print(rest_point_delta)
 	for i in range(len(rest_point_delta) - 1):
 		DDA(rest_point_delta[i][0], rest_point_delta[i][1],
 		    rest_point_delta[i + 1][0], rest_point_delta[i + 1][1], interpolated_point)
@@ -159,8 +116,6 @@ def gen_Filter(max_lat_delta, max_lng_delta, rest_point_delta):
 		else:
 			# delete one row
 			kernel = kernel[1:, :]
-	# print(kernel.shape)
-	# print(kernel)
 	return kernel
 
 
