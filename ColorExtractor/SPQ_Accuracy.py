@@ -29,8 +29,8 @@ if __name__ == "__main__":
     Y = SE_lng - NW_lng
     
     path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
-    samples_groupby_filename = manual_sample.groupby('Filename')
-    # samples_groupby_filename = random_sample.groupby('Filename')
+    # samples_groupby_filename = manual_sample.groupby('Filename')
+    samples_groupby_filename = random_sample.groupby('Filename')
 
     # result df
     result = pd.DataFrame(columns=['Filename', 'index', 'Speed Limit', 'color_code', 'SPQ_color_code', 'Old_color_code'])
@@ -53,28 +53,28 @@ if __name__ == "__main__":
             longitude_seq = []
             latitude_seq = []
             # if index in sample_index:
-            if index == 516:
+            if index == 6281 and filename == 'VED_171122_week':
                 for i in range(up_limit):
                     # Change every 6 items
                     lng_val = (_input['Longitude[deg]'].at[index - i] - NW_lng)/Y
                     lat_val = (_input['Latitude[deg]'].at[index - i] - NW_lat)/X
-                    # adptiv track length by delta
+                    # adptive track length by delta
                     longitude_seq.append(lng_val)
                     latitude_seq.append(lat_val)
                     idx = _input['Index'].at[index]
                     rest_point_delta, max_delta = tools.point_delta(longitude_seq, latitude_seq, idx)
-                    if max_delta > 20:
+                    if max_delta > 20: # 20 is the threshold, set as you wish
                         break
                 try:
-                    dir_color_code, orig_color_code = tools.image_process_position_seq(longitude_seq, latitude_seq, idx, rest_point_delta, max_delta, flag=False)
+                    dir_color_code, orig_color_code = tools.image_process_position_seq(longitude_seq, latitude_seq, idx, max_delta, flag=True)
                 except:
                     dir_color_code = tools.image_process(longitude_seq[0], latitude_seq[0], idx)
                     orig_color_code = dir_color_code
                 old_color_code = tools.image_process(longitude_seq[0], latitude_seq[0], idx)
                 
-                acutal_index = group[group['index'] == index].index.tolist()[0]
-                acutal_color_code = group['color_code'].at[acutal_index]
-                result = result.append({'Filename': filename, 'index': index, 'Speed Limit': row['Speed Limit[km/h]'], 'color_code': acutal_color_code, 'dir_SPQ_color_code': dir_color_code, 'original_SPQ_color_code': orig_color_code, 'Old_color_code': old_color_code}, ignore_index=True)
+    #             acutal_index = group[group['index'] == index].index.tolist()[0]
+    #             acutal_color_code = group['color_code'].at[acutal_index]
+    #             result = result.append({'Filename': filename, 'index': index, 'Speed Limit': row['Speed Limit[km/h]'], 'color_code': acutal_color_code, 'dir_SPQ_color_code': dir_color_code, 'original_SPQ_color_code': orig_color_code, 'Old_color_code': old_color_code}, ignore_index=True)
                 
-    result.to_csv('result/manual_SPQ_Accuracy.csv', index=False)
+    # result.to_csv('result/manual_SPQ_Accuracy.csv', index=False)
     

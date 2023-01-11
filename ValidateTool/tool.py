@@ -696,7 +696,7 @@ def testTime():
 
 
 if __name__ == '__main__':
-    GMAPS_API = "AIzaSyAFqM8oZMQAJaPvS2qYcFzZpAluCr0KywQ"
+    GMAPS_API = "Your API Key"
     url = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&departure_time=%s&key=" + GMAPS_API
     if WAYPOINTS is not None:
         url = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&waypoints=via:%s&departure_time=%s&key=" + GMAPS_API
