@@ -26,7 +26,8 @@ if __name__ == "__main__":
     Y = SE_lng - NW_lng
 
     file_names = ['VED_171129_week']
-    path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
+
+    ved_final_path = "./ved-final/"
 
     selectedSample = pd.DataFrame(columns=['Filename', 'index', 'color_code'])
 
@@ -36,11 +37,11 @@ if __name__ == "__main__":
     plt.ion()
     
     for filename in file_names:
-        length = sum(1 for row in open(path + 'ved_data_enrichment/data/ved-final/'+filename+'.csv', 'r'))
+        length = sum(1 for row in open(ved_final_path+filename+'.csv', 'r'))
 
         typer.secho(f"Reading file: {filename}", fg="red", bold=True)
         typer.secho(f"total rows: {length}", fg="green", bold=True)
-        _input = pd.read_csv(path + 'ved_data_enrichment/data/ved-final/'+filename+'.csv',
+        _input = pd.read_csv(ved_final_path+filename+'.csv',
                              dtype={"Latitude[deg]": float, 'Longitude[deg]': float,
                                     'Vehicle Speed[km/h]': float, 'Speed Limit[km/h]': 'string'},
                              chunksize=50000)

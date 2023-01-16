@@ -28,7 +28,8 @@ if __name__ == "__main__":
     X = SE_lat - NW_lat
     Y = SE_lng - NW_lng
     
-    path = "/Users/alexwell/Desktop/DAT295-Road-pattern-matching/"
+    ved_final_path = "./ved-final/"
+
     # samples_groupby_filename = manual_sample.groupby('Filename')
     samples_groupby_filename = random_sample.groupby('Filename')
 
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     total = 0
     for filename, group in samples_groupby_filename:
         # Read the data
-        _input = pd.read_csv(path + 'ved_data_enrichment/data/ved-final/'+filename+'.csv',
+        _input = pd.read_csv(ved_final_path+filename+'.csv',
                                  dtype={"Latitude[deg]": float, 'Longitude[deg]': float,
                                         'Vehicle Speed[km/h]': float, 'Speed Limit[km/h]': 'string'},
                                  nrows=10000)

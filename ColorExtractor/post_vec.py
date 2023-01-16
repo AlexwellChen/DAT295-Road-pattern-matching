@@ -125,12 +125,13 @@ if __name__ == "__main__":
     X = SE_lng - NW_lng
     Y = SE_lat - NW_lat
     import typer
+    ved_final_path = "./ved-final/"
     for filename in file_names:
-        length = sum(1 for row in open('./ved_data_enrichment/data/ved-final/'+filename+'.csv', 'r'))
+        length = sum(1 for row in open(ved_final_path+filename+'.csv', 'r'))
 
         typer.secho(f"Reading file: {filename}", fg="red", bold=True)
         typer.secho(f"total rows: {length}", fg="green", bold=True)
-        _input = pd.read_csv('./ved_data_enrichment/data/ved-final/'+filename+'.csv',
+        _input = pd.read_csv(ved_final_path+filename+'.csv',
                              dtype={"Matchted Latitude[deg]": float, 'Matched Longitude[deg]': float,
                                     'Vehicle Speed[km/h]': float, 'Speed Limit[km/h]': 'string'},
                              chunksize=1000)
