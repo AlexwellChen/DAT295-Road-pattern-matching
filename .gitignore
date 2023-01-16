@@ -138,3 +138,7 @@ ValidateTool/output
 ValidateTool/sample.json
 DAT295 final.md
 *.pdf
+ColorExtractor/result/manual_SPQ_Accuracy.xlsx
+ColorExtractor/result/manual_SPQ_Accuracy_by_speed.xlsx
+ColorExtractor/result/random_SPQ_Accuracy_by_speed.xlsx
+SPQ data.xlsx
