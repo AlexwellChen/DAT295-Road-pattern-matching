@@ -3,7 +3,7 @@
 
 First use `ColorExtractor/stitch.py` generate target area images for SPQ.
 
-Prepar `ved_data_enrichment` from  https://bitbucket.org/eladschiller/deeplearningenergy/src/VED_Data_Enrichment/ (Authorization required from Elad). Place in the root directory.
+Prepar `ved-final.zip` from  https://chalmers-my.sharepoint.com/:u:/g/personal/chenfa_chalmers_se/EX3bb1odQqNHq7snaoty4QEBn5UBpt1jZ1h-vVREjIO6Zg?e=2eb6o1 (Need Chalmers account to download file). Unzip and place in the root directory.
 
 Prepar your GMAPS_API in `ValidateTool/tool.py` for GRQ.
 
