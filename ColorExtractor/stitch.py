@@ -137,18 +137,18 @@ if __name__ == '__main__':
     region = sol.build_tile_region(
         42.3258,  -83.674, 42.2203052778, -83.8042902778,   level)
 
-    sol.scraper(6*3600, 15, region, 'test6AM.png')
-    # print(region)
-    # start_point = 987
-    # loop = tqdm(range(start_point, 1008), desc="Iterate ")
-    # for time in loop:
-    #     loop.set_description("Iteration " + str(time))
-    #     filename = "./output/%s_%s_%s_%s_z%s_t%s.png" % (
-    #         region['x_start'],
-    #         region['x_end'],
-    #         region['y_start'],
-    #         region['y_end'],
-    #         level,
-    #         (time)*600,
-    #     )
-    #     sol.scraper(time, level, region, filename)
+    # sol.scraper(6*3600, 15, region, 'test6AM.png')
+    # # print(region)
+    start_point = 987
+    loop = tqdm(range(start_point, 1008), desc="Iterate ")
+    for time in loop:
+        loop.set_description("Iteration " + str(time))
+        filename = "output/%s_%s_%s_%s_z%s_t%s.png" % (
+            region['x_start'],
+            region['x_end'],
+            region['y_start'],
+            region['y_end'],
+            level,
+            (time)*600,
+        )
+        sol.scraper(time, level, region, filename)
