@@ -1,7 +1,7 @@
 # DAT295-Road-pattern-matching
 ### Data Preparation
 
-To prepare the image data output folder, download output.zip from [output.zip](https://chalmers-my.sharepoint.com/:u:/g/personal/chenfa_chalmers_se/EXQ_mHRGd4NMuTHc9CdSac4B2AMJwQnE5sbJq7dp1PAO-A?e=fD51tI) and unzip it in the project root directory.
+To prepare the image data "output" folder, download [output.zip](https://chalmers-my.sharepoint.com/:u:/g/personal/chenfa_chalmers_se/EXQ_mHRGd4NMuTHc9CdSac4B2AMJwQnE5sbJq7dp1PAO-A?e=fD51tI) and unzip it in the project root directory.
 
 Prepare `ved-final.zip` from  [ved-final.zip](https://chalmers-my.sharepoint.com/:u:/g/personal/chenfa_chalmers_se/EX3bb1odQqNHq7snaoty4QEBn5UBpt1jZ1h-vVREjIO6Zg?e=2eb6o1) (Need Chalmers account to download file). Unzip and place in the root directory.
 
